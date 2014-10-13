@@ -1,0 +1,138 @@
+\documentclass[a4paper]{article}
+
+% \VignetteIndexEntry{Test for Qualitative Interactions from Complete Data}
+
+\title{Qualint: Test for Qualitative Interactions from Complete Data}
+\author{Lixi Yu\\
+Eun-Young Suh \\
+Guohua (James) Pan}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+
+\maketitle
+
+
+\section{Introduction}
+
+This is a short tutorial on using the ``qualint" function. The ``qualval" function could be used to test for qualitative interactions between treatment effects and patient subgroups. The term ``treatment effect" here means the comparison between two treatments. It includes two testing methods: Interval Based Graphical Approach and Gail Simon Likelihood Ratio Test, among which the IBGA is the default. The type of reponse variable included inside are: continuous, binary and time to event. Besides, for continuous response, the treatment effect scale is the mean difference; for binary response, three scales are available: the risk difference, the relative risk and the odds ratio; for time to event data, hazard ratio is adopted.
+
+\section{Example}
+
+First, let's install the ``QualInt" package.
+
+<<>>=
+library("QualInt")
+@
+
+\subsection{Continuous Response}
+
+In order to show how to use function ``qualint" to do testing for continuous responses, we need to make up the data first.
+
+<<>>=
+ynorm <- rnorm(300)
+trtment <- sample(c(0, 1), 300, prob = c(0.4, 0.6), 
+                  replace = TRUE)
+subgrp <- sample(c(0, 1, 2), 300, prob = c(1/3, 1/3, 1/3), 
+                 replace = TRUE)
+@
+
+The default of the ``qualint" function is {\tt type = "continuous"}, {\tt scale = "MD"}, {\tt method = "IBGA"}, {\tt alpha = 0.05} and {\tt plotout = FALSE}, which means the function will use the Interval Based Graphical Approach to do the testing for continous responses with the mean difference as the scale of treatment effects by default. Also, the significance level is set as $0.05$ without outputting the testing graph. Therefore, if we are good with the default settings, we could call our function now.
+
+<<>>=
+out1 <- qualint(ynorm, trtment, subgrp)
+@
+
+If you prefer other settting for the parameters in the function, you need to specify them yourself. For example, if you want to let the function output the IBGA graph, you need to let {\tt plotout = TRUE}.
+
+<<>>=
+out2 <- qualint(ynorm, trtment, subgrp, type = "continuous", plotout = TRUE)
+@
+
+If instead of IBGA, you want to see the results of LRT, you could also let {\tt test = "LRT"}. However, there will be no graph output for LRT.
+
+<<>>=
+out3 <- qualint(ynorm, trtment, subgrp, test = "LRT", type = "continuous")
+@
+
+The ``qualint" function will return an ``qualint" object as the result. Now let's see how the testing results are shown. The basic one is to type the name of the object. For example, type {\tt out1} or {\tt print(out1)}.
+
+<<>>=
+print(out1)
+@
+
+The main information of the testing results are listed as above. Reference means the reference treatment used in the comparison. For example, here the mean difference means the mean response of treatment 1 minus the mean response of treatment 0 since the treatment 0 is considered as the reference one. Another thing that needs to pay attention is Lower. Int and Upper. Int here is not the confidence intervals we used widely, they are actually the lower and upper limits of the testing interval from the IBGA. For LRT, the results are mostly the same except that it won't have testing intervals.
+
+<<>>=
+print(out3)
+@
+
+If we also want to see what information an ``qualint" object contain or we need to extract part of the information for further analysis, the function {\tt summary} would be helpful.
+
+<<>>=
+summary(out1)
+@
+
+Then you could just use the dollar sign $\$$ to get all the information you need from an ``qualint" object. For example, if only p-value is what you need, just use {\tt out$\$$pvalue}.
+
+<<>>=
+out1$pvalue
+@
+
+If you want to check the detailed explanation of all the elements in the ``qualint" object, then go to the help page for the ``qualint" function or type {\tt ?QualInt)}.
+
+\begin{Sinput}
+> ?QualInt
+\end{Sinput}
+
+If you only need the estimation results related to the testing, just type {\tt coef(out1)} or {\tt coefficients(out1)} which will return a matrix contraining al the estimating results.
+
+<<>>=
+coef(out1)
+@
+
+For IBGA, we also provide the testing graph. You could output it simply by specifying {\tt plotout = TRUE} or type {\tt plot(out1)}. Notice that the left dot and the right dot for each subgroup are the lower and upper limits of the confidence interval, and the middle dot is the location of the estimated treatment effect. Besides, the function ``ibga" could be applied to the ``qualint" object to produce the estimating results related with the plot. For example, the testing intervals of the scale chose for the IBGA graph. Notice that this two functions are not available for {\tt test = "LRT"}.
+
+\begin{center}
+<<fig=TRUE, height=5>>=
+plot(out1)
+@
+\end{center}
+
+<<>>=
+ibga(out1)
+@
+
+\subsection{Binary Response}
+
+Since the default of the ``qualint" function is for continous responses, we need to specify the parameters ourselves when we want to doing the testing for binary responses. The default of the treatment effect scale for the binary response is {\tt scale = "RD"} (Risk Difference).
+
+<<>>=
+ybin <- sample(c(0, 1), 300, prob = c(0.3, 0.7), replace = TRUE)
+out4 <- qualint(ybin, trtment, subgrp, type = "binary", scale = "RD")
+print(out4)
+@
+
+If instead of the risk difference, you prefer the relative risk and LRT, then just specify {\tt scale = "RR"} and {\tt test = "LRT"}. Notice that the testing is based on the log of relative risk instead of relative risk itself.
+
+<<>>=
+out5 <- qualint(ybin, trtment, subgrp, type = "binary", 
+                scale = "RR", test = "LRT")
+print(out5)
+@
+
+The use of other ``qualint" object related functions, like {\tt coef}, {\tt print} and {\tt plot} are the same as for the continous reponse.
+
+\subsection{Time to Event Response}
+
+The treatment effect scale for the time to event reponse is {\tt scale = "HR"} (Hazard Ratio) by default, therefore you don't need to specify it specifically. Also, you don't need to specify the response type {\tt type = "survival"} specifically since the function will recognize it through the "Surv" object of the response. Howeve, it will signal a warning to remind the user. The use of other functions are the same as mentioned above.
+
+<<>>=
+time <- rpois(300, 200)
+censor <- sample(c(0, 1), 300, prob = c(0.7, 0.3), replace = TRUE)
+out6 <- qualint(Surv(time, censor), trtment, subgrp, scale = "HR", type = "survival")
+print(out6)
+@
+
+\end{document}

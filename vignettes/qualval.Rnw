@@ -1,0 +1,50 @@
+\documentclass[a4paper]{article}
+
+% \VignetteIndexEntry{Test for Qualitative Interactions from Summary Stats}
+
+\title{Qualval: Test for Qualitative Interactions from Summary Statistics}
+\author{Lixi Yu\\
+Eun-Young Suh \\
+Guohua (James) Pan}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+
+\maketitle
+
+
+\section{Introduction}
+
+This is a short tutorial on using the ``qualval" function. The ``qualval" function is just like the ``qualint" function, which is used to test for qualitative interactions between treatment effects and patient subgroups. However, compared to the ``qualint" function, the ``qualval" function could be used for any types of data and any types of analysis model since it is based on summary statistics of treatment effects instead of the data. It also includes two testing methods: Interval Based Graphical Approach and Gail Simon Likelihood Ratio Test, among which the IBGA is the default. 
+
+\section{Example}
+
+First, let's install the ``QualInt" package.
+
+<<>>=
+library("QualInt")
+@
+
+The function ``qualval" output the same results as the function ``qualint", which is also a S3 object called ``qualint".
+
+<<>>=
+test9 <- qualval(effect = c(1.0, 0.5, -2.0), 
+                 se = c(0.86, 0.64, 0.32))
+print(test9)
+ibga(test9)
+summary(test9)
+@
+
+\begin{center}
+<<fig=TRUE, height=5>>=
+plot(test9)
+@
+\end{center}
+
+Since the two functions output the same object as the result, all the functions available for the ``qualint" object could also be used here, 
+like {\tt plot}, {\tt print}, {\tt coef} and {\tt ibga}.
+
+
+
+\end{document}
